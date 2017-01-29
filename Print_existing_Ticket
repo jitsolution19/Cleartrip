@@ -1,0 +1,126 @@
+package Login;
+
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import com.relevantcodes.extentreports.ExtentReports;
+import com.relevantcodes.extentreports.ExtentTest;
+import com.relevantcodes.extentreports.LogStatus;
+
+public class Sign_in_to_Cleartrip {
+	
+	/* ********* Report Setup ************** **/
+	ExtentReports report;
+	ExtentTest logger;
+	String Report_Location = "B:\\XXXXXXXX\\Reports\\Cleartrip_Report.html";
+	
+	/* ************* WebDriver **************** */
+	WebDriver driver;
+	
+	@Test(priority=1)
+	public void Browser_Setup()
+	{
+		report=new ExtentReports(Report_Location,true);
+		logger=report.startTest("Validate Browser Setup ","Verify Browser Selection for Execution");
+		String webdriver_name = "webdriver.chrome.driver";
+		String Path = "B:\\XXXXXXXX\\driver\\chromedriver\\chromedriver.exe";
+		System.setProperty(webdriver_name, Path);
+		logger.log(LogStatus.INFO, "Browser Selected : "+"Chrome");
+		driver = new ChromeDriver();
+		logger.log(LogStatus.PASS, "Browser Selected Successfully ");
+		report.endTest(logger);
+	}
+	
+	@Test(priority=2)
+	public void Cleartrip_navigation()
+	{
+		logger=report.startTest("Validate Website Launch ","Verify Website is Launch Successfully");
+		driver.manage().deleteAllCookies();
+		driver.manage().window().maximize();
+		driver.navigate().to("https://www.cleartrip.com/");		
+		driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
+		
+		logger.log(LogStatus.PASS, "Website Launched Successfully");
+		report.endTest(logger);
+	}
+	
+	@Test(priority=3,dataProvider="get_credential")
+	public void Sign_in(String Username,String Password)
+	{
+		logger=report.startTest("Validate Sign In","Verify User is able to Login Successfully");
+		driver.findElement(By.xpath("//span[@class='span span19 truncate']")).click();
+		driver.findElement(By.id("SignIn")).click();		
+		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+		try 
+		{
+			driver.switchTo().frame("modal_window");
+			driver.findElement(By.xpath("//input[@name='email']")).sendKeys(Username);
+			driver.findElement(By.xpath("//input[@name='password']")).sendKeys(Password);
+			driver.findElement(By.id("signInButton")).click();			
+			driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+			String UserName = driver.findElement(By.id("userAccountLink")).getAttribute("title");			
+			logger.log(LogStatus.PASS, "Sign In Successful ", "Sign In With Username "+UserName);
+		}catch(Exception e)		
+		{
+			System.out.println(e);
+			logger.log(LogStatus.FAIL, "Sign In Successful ", "Sign In With Username "+Username);
+		}
+		report.endTest(logger);
+	}
+	
+	@Test(priority=4)
+	public void Print_Exsiting_Ticket()
+	{
+		logger=report.startTest("Validate Print Existing Ticket ","Verify User is able Print the Existing trip ticket");
+		driver.findElement(By.xpath("//span[@class='span span19 truncate']")).click();
+		driver.findElement(By.xpath("//i[@class='iconSprite icoTrips']")).click();
+		WebDriverWait wait = new WebDriverWait(driver,30);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("trips_tab")));
+		try
+		{
+			String Trip_details = driver.findElement(By.xpath("//a[@class='clearFix']")).getText();
+			System.out.println("Trip detail : "+Trip_details);
+			driver.findElement(By.xpath("//a[@class='clearFix']")).click();
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.linkText("Print e-ticket")));
+			driver.findElement(By.linkText("Print e-ticket")).click();
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.linkText("Print this ticket")));
+			driver.findElement(By.linkText("Print this ticket")).click();
+			logger.log(LogStatus.PASS,"Ticket Print Successfully ","Ticket Print functionality works Successfully");
+		}catch(Exception e)
+		{
+			System.out.println(e);
+			logger.log(LogStatus.FAIL,"Ticket Print Successfully ","Ticket Print functionality works Successfully");
+		}
+		report.endTest(logger);
+	}	
+	
+	@AfterMethod()
+	public void Teardown(ITestResult result)
+	{
+		if(result.getStatus()==ITestResult.FAILURE)
+		{
+			logger.log(LogStatus.FAIL, "Print Ticket scenario Verified");		
+		}
+		report.endTest(logger);
+		report.flush();
+	}
+	
+	@DataProvider
+	public Object[][] get_credential()
+	{
+		Object[][]data = new Object[1][2];
+		data[0][0] ="XXXXXXXXX@gmail.com";
+		data[0][1] ="XXXXXXXXX";
+		return data;
+		
+	}
+}
