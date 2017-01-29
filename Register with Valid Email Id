@@ -1,0 +1,90 @@
+package Login;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+
+import com.relevantcodes.extentreports.ExtentReports;
+import com.relevantcodes.extentreports.ExtentTest;
+import com.relevantcodes.extentreports.LogStatus;
+
+public class Register_with_Valid_Email_Id {
+
+	/* ********* Report Setup ************** **/
+	ExtentReports report;
+	ExtentTest logger;
+	String Report_Location = "B:\\XXXXXXX\\Reports\\Cleartrip_Report.html";
+	/* ************* WebDriver **************** */
+	WebDriver driver;
+	@Test(priority =1)
+	public void New_hire()
+	{
+		report=new ExtentReports(Report_Location,true);
+		logger=report.startTest("Validate New hire ","Verify user is able to make Registration with Valid Email Id");
+		Sign_in_to_Cleartrip obj_clear = new Sign_in_to_Cleartrip();
+		obj_clear.Browser_Setup();
+		logger.log(LogStatus.INFO, "Brower Name : ","Chrome");
+		obj_clear.Cleartrip_navigation();
+		logger.log(LogStatus.INFO, "Web Url : ","www.cleartrip.com");
+		driver = obj_clear.driver;
+		driver.findElement(By.xpath("//span[@class='span span19 truncate']")).click();		
+		driver.findElement(By.linkText("Register")).click();
+		WebDriverWait wait = new WebDriverWait(driver,30);
+		wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("modal_window")));
+		logger.log(LogStatus.INFO, "Entered valid Email ID : ","XXXXXXX@gmail.com");
+		driver.findElement(By.id("username1")).sendKeys("XXXXXXX@gmail.com");
+		driver.findElement(By.id("registerButton")).click();
+		try
+		{
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));	
+		}catch(Exception e)
+		{
+			System.out.println(e);
+		}
+		
+		String CleartripAccount = driver.findElement(By.id("accountHead")).getText();		
+		logger.log(LogStatus.PASS,"Validate message : ",CleartripAccount);
+		driver.findElement(By.id("password")).sendKeys("XXXXXXXXXX");
+		logger.log(LogStatus.INFO,"Password : ","XXXXXXXXXX");
+		Select Title = new Select(driver.findElement(By.id("profile_title")));
+		Title.selectByVisibleText("Mr");
+		logger.log(LogStatus.INFO,"Title :","Mr");
+		driver.findElement(By.xpath("//input[@name='first_name']")).sendKeys("XXXXXXXXXX");
+		logger.log(LogStatus.INFO,"First Name :","XXXXXXXXXX");
+		driver.findElement(By.xpath("//input[@name='last_name']")).sendKeys("XXXXXXXXXX");
+		logger.log(LogStatus.INFO,"Last Name :","XXXXXXXXXX");
+		Select Country_Code = new Select(driver.findElement(By.id("country_code")));
+		Country_Code.selectByVisibleText("India(+91)");
+		logger.log(LogStatus.INFO,"Country Code :","India(+91)");		
+		driver.findElement(By.id("mobile_number")).sendKeys("XXXXXXXXXX");
+		logger.log(LogStatus.INFO,"Mobile number :","XXXXXXXXXX");
+		driver.findElement(By.id("signUpButton")).click();
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[@class='span span19 truncate']")));
+		String User_Email_id = driver.findElement(By.xpath("//span[@class='span span19 truncate']")).getText();
+		if (User_Email_id.equals("XXXXXXXXXX@gmail.com"))
+		{
+			logger.log(LogStatus.INFO,"User Email ID :",User_Email_id);
+			logger.log(LogStatus.PASS,"Register with valid Email ID successfull :",User_Email_id);
+		}else
+		{
+			logger.log(LogStatus.FAIL,"Register with valid Email ID successfull :",User_Email_id);
+		}
+		report.endTest(logger);
+	}
+	
+	@AfterMethod()
+	public void Teardown(ITestResult result)
+	{
+		if(result.getStatus()==ITestResult.FAILURE)
+		{
+			logger.log(LogStatus.FAIL, "Cleartrip Account creation validation");		
+		}
+		report.endTest(logger);
+		report.flush();
+	}	
+}
